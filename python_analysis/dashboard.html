@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ethereum Statistical Dashboard - Python Analysis</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        color: #fff;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        text-align: center;
+        padding: 40px 0;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 40px;
+      }
+
+      h1 {
+        font-size: 2.5em;
+        background: linear-gradient(90deg, #00d4ff, #00ff88);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        color: #aaa;
+        font-size: 1.1em;
+      }
+
+      .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition:
+          transform 0.3s,
+          box-shadow 0.3s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+      }
+
+      .stat-value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #00d4ff;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #aaa;
+        font-size: 0.9em;
+      }
+
+      .section {
+        margin-bottom: 50px;
+      }
+
+      .section-title {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        color: #00ff88;
+      }
+
+      .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+      }
+
+      .chart-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s;
+      }
+
+      .chart-card:hover {
+        transform: scale(1.02);
+      }
+
+      .chart-title {
+        font-size: 1.2em;
+        margin-bottom: 15px;
+        color: #00d4ff;
+      }
+
+      .chart-image {
+        width: 100%;
+        height: auto;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+
+      .chart-image:hover {
+        transform: scale(1.05);
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        overflow: auto;
+      }
+
+      .modal-content {
+        margin: auto;
+        display: block;
+        max-width: 90%;
+        max-height: 90%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .close {
+        position: absolute;
+        top: 20px;
+        right: 35px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s;
+      }
+
+      .close:hover {
+        color: #00d4ff;
+      }
+
+      .nav-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+      }
+
+      .nav-tab {
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .nav-tab:hover,
+      .nav-tab.active {
+        background: rgba(0, 212, 255, 0.2);
+        border-color: #00d4ff;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      footer {
+        text-align: center;
+        padding: 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 50px;
+        color: #aaa;
+      }
+
+      @media (max-width: 768px) {
+        .charts-grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 1.8em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Ethereum Statistical Dashboard</h1>
+        <p class="subtitle">
+          Python Analysis - Comprehensive Statistical Analysis of Ethereum USD
+          Historical Dataset
+        </p>
+      </header>
+
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-value">$1,699.02</div>
+          <div class="stat-label">Mean Close Price</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">0.17%</div>
+          <div class="stat-label">Mean Daily Return</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">4.49%</div>
+          <div class="stat-label">Daily Return Std Dev</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">3,006</div>
+          <div class="stat-label">Total Data Points</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">33</div>
+          <div class="stat-label">Variables Analyzed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">40+</div>
+          <div class="stat-label">Charts Generated</div>
+        </div>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="nav-tab active" onclick="showTab('histograms')">
+          Histograms
+        </div>
+        <div class="nav-tab" onclick="showTab('boxplots')">Box Plots</div>
+        <div class="nav-tab" onclick="showTab('density')">Density Plots</div>
+        <div class="nav-tab" onclick="showTab('scatter')">Scatter Plots</div>
+        <div class="nav-tab" onclick="showTab('bar')">Bar Charts</div>
+        <div class="nav-tab" onclick="showTab('qq')">Q-Q Plots</div>
+        <div class="nav-tab" onclick="showTab('other')">Other Charts</div>
+      </div>
+
+      <div id="histograms" class="tab-content active">
+        <div class="section">
+          <h2 class="section-title">Histograms</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price Distribution</h3>
+              <img
+                src="plots/histogram_Close.png"
+                alt="Histogram of Close"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">High Price Distribution</h3>
+              <img
+                src="plots/histogram_High.png"
+                alt="Histogram of High"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Low Price Distribution</h3>
+              <img
+                src="plots/histogram_Low.png"
+                alt="Histogram of Low"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Open Price Distribution</h3>
+              <img
+                src="plots/histogram_Open.png"
+                alt="Histogram of Open"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Volume Distribution</h3>
+              <img
+                src="plots/histogram_Volume.png"
+                alt="Histogram of Volume"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Daily Return Distribution</h3>
+              <img
+                src="plots/histogram_Daily_Return_Pct.png"
+                alt="Histogram of Daily Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Log Return Distribution</h3>
+              <img
+                src="plots/histogram_Log_Return.png"
+                alt="Histogram of Log Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">RSI-14 Distribution</h3>
+              <img
+                src="plots/histogram_RSI_14.png"
+                alt="Histogram of RSI"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">MACD Distribution</h3>
+              <img
+                src="plots/histogram_MACD.png"
+                alt="Histogram of MACD"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">30-Day Volatility Distribution</h3>
+              <img
+                src="plots/histogram_Volatility_30d.png"
+                alt="Histogram of Volatility"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="boxplots" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Box Plots</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price Box Plot</h3>
+              <img
+                src="plots/boxplot_Close.png"
+                alt="Boxplot of Close"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">High Price Box Plot</h3>
+              <img
+                src="plots/boxplot_High.png"
+                alt="Boxplot of High"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Low Price Box Plot</h3>
+              <img
+                src="plots/boxplot_Low.png"
+                alt="Boxplot of Low"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Open Price Box Plot</h3>
+              <img
+                src="plots/boxplot_Open.png"
+                alt="Boxplot of Open"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Volume Box Plot</h3>
+              <img
+                src="plots/boxplot_Volume.png"
+                alt="Boxplot of Volume"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Daily Return Box Plot</h3>
+              <img
+                src="plots/boxplot_Daily_Return_Pct.png"
+                alt="Boxplot of Daily Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Log Return Box Plot</h3>
+              <img
+                src="plots/boxplot_Log_Return.png"
+                alt="Boxplot of Log Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">RSI-14 Box Plot</h3>
+              <img
+                src="plots/boxplot_RSI_14.png"
+                alt="Boxplot of RSI"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">MACD Box Plot</h3>
+              <img
+                src="plots/boxplot_MACD.png"
+                alt="Boxplot of MACD"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">30-Day Volatility Box Plot</h3>
+              <img
+                src="plots/boxplot_Volatility_30d.png"
+                alt="Boxplot of Volatility"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Combined Box Plot</h3>
+              <img
+                src="plots/boxplot_combined.png"
+                alt="Combined Boxplot"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="density" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Density Plots</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price Density</h3>
+              <img
+                src="plots/density_Close.png"
+                alt="Density of Close"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">High Price Density</h3>
+              <img
+                src="plots/density_High.png"
+                alt="Density of High"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Low Price Density</h3>
+              <img
+                src="plots/density_Low.png"
+                alt="Density of Low"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Open Price Density</h3>
+              <img
+                src="plots/density_Open.png"
+                alt="Density of Open"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Volume Density</h3>
+              <img
+                src="plots/density_Volume.png"
+                alt="Density of Volume"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Daily Return Density</h3>
+              <img
+                src="plots/density_Daily_Return_Pct.png"
+                alt="Density of Daily Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Log Return Density</h3>
+              <img
+                src="plots/density_Log_Return.png"
+                alt="Density of Log Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">RSI-14 Density</h3>
+              <img
+                src="plots/density_RSI_14.png"
+                alt="Density of RSI"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">MACD Density</h3>
+              <img
+                src="plots/density_MACD.png"
+                alt="Density of MACD"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">30-Day Volatility Density</h3>
+              <img
+                src="plots/density_Volatility_30d.png"
+                alt="Density of Volatility"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="scatter" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Scatter Plots</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price vs Volume</h3>
+              <img
+                src="plots/scatter_close_volume.png"
+                alt="Scatter Close vs Volume"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price vs Daily Return</h3>
+              <img
+                src="plots/scatter_close_daily_return.png"
+                alt="Scatter Close vs Daily Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="bar" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Bar Charts</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Yearly Average Close Price</h3>
+              <img
+                src="plots/bar_yearly_avg_close.png"
+                alt="Bar Yearly Average"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Monthly Average Close Price</h3>
+              <img
+                src="plots/bar_monthly_avg_close.png"
+                alt="Bar Monthly Average"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="qq" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Q-Q Plots</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Close Price Q-Q Plot</h3>
+              <img
+                src="plots/qqplot_Close.png"
+                alt="Q-Q Plot of Close"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Daily Return Q-Q Plot</h3>
+              <img
+                src="plots/qqplot_Daily_Return_Pct.png"
+                alt="Q-Q Plot of Daily Return"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-title">Volume Q-Q Plot</h3>
+              <img
+                src="plots/qqplot_Volume.png"
+                alt="Q-Q Plot of Volume"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="other" class="tab-content">
+        <div class="section">
+          <h2 class="section-title">Other Charts</h2>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-title">Correlation Heatmap</h3>
+              <img
+                src="plots/correlation_heatmap.png"
+                alt="Correlation Heatmap"
+                class="chart-image"
+                onclick="openModal(this)"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <p>Ethereum Statistical Analysis - Python Version</p>
+        <p>
+          Generated using Python with pandas, numpy, matplotlib, seaborn, and
+          scipy
+        </p>
+      </footer>
+    </div>
+
+    <div id="imageModal" class="modal">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img class="modal-content" id="modalImage" />
+    </div>
+
+    <script>
+      function showTab(tabName) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll(".tab-content");
+        tabContents.forEach((content) => {
+          content.classList.remove("active");
+        });
+
+        // Remove active class from all tabs
+        const tabs = document.querySelectorAll(".nav-tab");
+        tabs.forEach((tab) => {
+          tab.classList.remove("active");
+        });
+
+        // Show selected tab content
+        document.getElementById(tabName).classList.add("active");
+
+        // Add active class to clicked tab
+        event.target.classList.add("active");
+      }
+
+      function openModal(img) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        modal.style.display = "block";
+        modalImg.src = img.src;
+      }
+
+      function closeModal() {
+        document.getElementById("imageModal").style.display = "none";
+      }
+
+      // Close modal when clicking outside the image
+      window.onclick = function (event) {
+        const modal = document.getElementById("imageModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeModal();
+        }
+      });
+    </script>
+  </body>
+</html>

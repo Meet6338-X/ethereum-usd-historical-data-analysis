@@ -1,0 +1,71 @@
+HYPOTHESIS TEST RESULTS
+======================
+
+Test 1: One-Sample T-Test (Daily Return)
+---------------------------------------
+
+	One Sample t-test
+
+data:  daily_return
+t = 2.0697, df = 3004, p-value = 0.03857
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 0.008921364 0.330144726
+sample estimates:
+mean of x 
+ 0.169533 
+
+
+Test 2: Two-Sample T-Test (2021 vs 2022 Close Prices)
+-------------------------------------------------------
+
+	Welch Two Sample t-test
+
+data:  close_2021 and close_2022
+t = 11.769, df = 678.21, p-value < 2.2e-16
+alternative hypothesis: true difference in means is not equal to 0
+95 percent confidence interval:
+ 659.0037 922.9175
+sample estimates:
+mean of x mean of y 
+ 2778.354  1987.393 
+
+
+Test 3: Correlation Test (Close vs Volume)
+-----------------------------------------
+
+	Pearson's product-moment correlation
+
+data:  close_corr and volume_corr
+t = 38.766, df = 3004, p-value < 2.2e-16
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ 0.5531228 0.6008022
+sample estimates:
+      cor 
+0.5774547 
+
+
+Test 4: Paired T-Test (High vs Low)
+-----------------------------------
+
+	Paired t-test
+
+data:  data$High and data$Low
+t = 49.605, df = 3005, p-value < 2.2e-16
+alternative hypothesis: true mean difference is not equal to 0
+95 percent confidence interval:
+ 92.27161 99.86639
+sample estimates:
+mean difference 
+         96.069 
+
+
+Test 5: Chi-Square Test (Day of Week vs Price Movement)
+---------------------------------------------------------
+
+	Pearson's Chi-squared test
+
+data:  contingency_table
+X-squared = 19.336, df = 12, p-value = 0.08073
+

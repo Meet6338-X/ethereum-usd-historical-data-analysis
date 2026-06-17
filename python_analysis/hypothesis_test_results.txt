@@ -1,0 +1,31 @@
+HYPOTHESIS TEST RESULTS
+======================
+
+Test 1: One-Sample T-Test (Daily Return)
+---------------------------------------
+t-statistic: 2.069666
+p-value: 0.038569
+df: 3004
+
+Test 2: Two-Sample T-Test (2021 vs 2022 Close Prices)
+-------------------------------------------------------
+t-statistic: 11.769188
+p-value: 0.000000
+df: 678.21
+
+Test 3: Correlation Test (Close vs Volume)
+-----------------------------------------
+Correlation coefficient: 0.577455
+p-value: 0.000000
+
+Test 4: Paired T-Test (High vs Low)
+-----------------------------------
+t-statistic: 49.604516
+p-value: 0.000000
+df: 3005
+
+Test 5: Chi-Square Test (Day of Week vs Price Movement)
+---------------------------------------------------------
+Chi-square statistic: 19.336421
+p-value: 0.080727
+df: 12
